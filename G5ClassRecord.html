@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 5 Class Record System</title>
+    <!-- Tailwind CSS for modern responsive utilities -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka for that friendly, rounded cartoonish/Pixar vibe -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for cute icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                    },
+                    colors: {
+                        cBlue: { 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb' },
+                        cGreen: { 400: '#4ade80', 500: '#22c55e', 600: '#16a34a' },
+                        cOrange: { 400: '#fb923c', 500: '#f97316', 600: '#ea580c' },
+                        cPurple: { 400: '#c084fc', 500: '#a855f7', 600: '#9333ea' },
+                        cRed: { 400: '#f87171', 500: '#ef4444', 600: '#dc2626' },
+                        cYellow: { 400: '#fde047', 500: '#eab308', 600: '#ca8a04' },
+                    },
+                    boxShadow: {
+                        'cartoon': '4px 4px 0px 0px rgba(0, 0, 0, 0.15)',
+                        'cartoon-lg': '8px 8px 0px 0px rgba(0, 0, 0, 0.2)',
+                        'glow-blue': '0 0 20px rgba(59, 130, 246, 0.5)',
+                        'glow-green': '0 0 20px rgba(34, 197, 94, 0.5)',
+                        'glow-orange': '0 0 20px rgba(249, 115, 22, 0.5)',
+                        'glow-purple': '0 0 20px rgba(168, 85, 247, 0.5)',
+                        'glow-red': '0 0 20px rgba(239, 68, 68, 0.5)',
+                        'glow-yellow': '0 0 20px rgba(234, 179, 8, 0.5)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: radial-gradient(circle at 50% 50%, #f0f7ff 0%, #dbeafe 100%);
+            transition: background 0.5s ease;
+            overflow-x: hidden;
+        }
+        .dark body {
+            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0f172a 100%);
+        }
+        /* Floating particles CSS */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.2;
+            animation: floatUpDown 8s ease-in-out infinite;
+        }
+        @keyframes floatUpDown {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(15deg); }
+        }
+        /* Class record custom table styling */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        .dark .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        /* Confetti canvas */
+        #confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.4);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(168, 85, 247, 0.6);
+        }
+        /* Printable custom css rules */
+        @media print {
+            body { background: white !important; color: black !important; }
+            .no-print { display: none !important; }
+            .print-full { width: 100% !important; max-width: 100% !important; box-shadow: none !important; border: 1px solid #ccc !important; }
+            .glass-panel { background: white !important; border: none !important; box-shadow: none !important; }
+        }
+        
+        /* Custom styles to handle sticky columns and headers seamlessly */
+        #grades-table th {
+            position: sticky;
+            top: 0;
+            z-index: 25;
+            background-color: #f1f5f9;
+        }
+        .dark #grades-table th {
+            background-color: #1e293b;
+        }
+        .sticky-avatar {
+            position: sticky !important;
+            left: 0px !important;
+            z-index: 15 !important;
+        }
+        .sticky-name {
+            position: sticky !important;
+            left: 56px !important;
+            z-index: 15 !important;
+        }
+        .sticky-header-avatar {
+            position: sticky !important;
+            left: 0px !important;
+            top: 0px !important;
+            z-index: 45 !important;
+            background-color: #cbd5e1 !important; /* Slate-300 */
+        }
+        .dark .sticky-header-avatar {
+            background-color: #1e293b !important;
+        }
+        .sticky-header-name {
+            position: sticky !important;
+            left: 56px !important;
+            top: 0px !important;
+            z-index: 45 !important;
+            background-color: #cbd5e1 !important;
+        }
+        .dark .sticky-header-name {
+            background-color: #1e293b !important;
+        }
+        /* Soft shadow separator on the sticky name columns */
+        .sticky-name::after, .sticky-header-name::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            pointer-events: none;
+            box-shadow: inset -8px 0 6px -6px rgba(0,0,0,0.25);
+        }
+        .dark .sticky-name::after, .dark .sticky-header-name::after {
+            box-shadow: inset -8px 0 6px -6px rgba(0,0,0,0.6);
+        }
+
+        /* Smooth selection transition on rows and inputs */
+        #student-rows tr {
+            transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Highlight style matches the playful theme using dynamic tints */
+        .row-highlighted {
+            background-color: rgba(99, 102, 241, 0.12) !important;
+        }
+        .dark .row-highlighted {
+            background-color: rgba(99, 102, 241, 0.22) !important;
+        }
+        .row-highlighted .sticky-avatar,
+        .row-highlighted .sticky-name {
+            background-color: #e0e7ff !important; /* Indigo tinted backgrounds for frozen columns */
+        }
+        .dark .row-highlighted .sticky-avatar,
+        .dark .row-highlighted .sticky-name {
+            background-color: #1e1b4b !important; /* Deep indigo backgrounds for frozen columns in dark mode */
+        }
+        /* Style adjustments when input is nested inside a highlighted row */
+        .row-highlighted input[type="text"] {
+            color: #4f46e5;
+        }
+        .dark .row-highlighted input[type="text"] {
+            color: #a5b4fc;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 dark:text-slate-100 transition-colors duration-300 relative pb-12">
+    <!-- Confetti Canvas -->
+    <canvas id="confetti"></canvas>
+
+    <!-- Floating Classroom Particles -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <!-- SVG cute floating elements -->
+        <svg class="particle text-blue-400 dark:text-blue-900 w-12 h-12 top-[10%] left-[5%]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <svg class="particle text-purple-400 dark:text-purple-900 w-16 h-16 top-[40%] right-[8%] [animation-delay:2s]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.13 19.64 10.53 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm1-9h-2v3H8v2h3v3h2v-3h3v-2h-3V9z"/></svg>
+        <svg class="particle text-amber-400 dark:text-amber-900 w-10 h-10 bottom-[15%] left-[12%] [animation-delay:4s]" fill="currentColor" viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 4l2.5 5.5 5.5 2.5-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5L12 7z"/></svg>
+        <svg class="particle text-pink-400 dark:text-pink-900 w-14 h-14 top-[65%] left-[3%] [animation-delay:1.5s]" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="relative z-10 max-w-[98vw] sm:max-w-[95vw] lg:max-w-[98vw] 2xl:max-w-[1750px] mx-auto px-2 sm:px-4 lg:px-6 pt-8">
+        
+        <!-- Header Panel with Controls -->
+        <header class="flex flex-col sm:flex-row items-center justify-between mb-10 pb-6 border-b-4 border-slate-200 dark:border-slate-800 no-print">
+            <div class="flex items-center space-x-4 mb-4 sm:mb-0">
+                <div class="bg-gradient-to-br from-amber-400 to-orange-500 p-3 rounded-2xl shadow-cartoon transform hover:rotate-6 transition-transform">
+                    <span class="text-3xl">🎒</span>
+                </div>
+                <div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                        Grade 5 Class Record
+                    </h1>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">✨ Premium ESL Teacher Assistant Tool</p>
+                </div>
+            </div>
+            
+            <!-- Global Utilities -->
+            <div class="flex items-center space-x-3">
+                <!-- Theme Toggle -->
+                <button onclick="toggleTheme()" class="bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 p-3 rounded-xl shadow-cartoon hover:scale-110 active:scale-95 transition-transform duration-200 text-amber-500 dark:text-yellow-300" title="Toggle Theme">
+                    <i class="fa-solid fa-moon dark:hidden text-xl"></i>
+                    <i class="fa-solid fa-sun hidden dark:inline text-xl"></i>
+                </button>
+                <!-- Info Guide -->
+                <button onclick="openGuide()" class="bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 p-3 rounded-xl shadow-cartoon hover:scale-110 active:scale-95 transition-transform duration-200 text-indigo-500 dark:text-indigo-300" title="How to Use">
+                    <i class="fa-solid fa-circle-question text-xl"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- FOLDER SCREEN: DISPLAY 6 CLASSES -->
+        <main id="folder-screen" class="transition-all duration-500 transform scale-100 block">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-slate-700 dark:text-indigo-200 inline-block px-6 py-2 bg-indigo-50 dark:bg-slate-800/80 rounded-full border border-indigo-100 dark:border-indigo-900/50">
+                    📂 Select your Class
+                </h2>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 pt-4">
+                <!-- Folder 501 (Blue) -->
+                <div onclick="selectClass('501')" class="group cursor-pointer bg-white dark:bg-slate-800 border-4 border-blue-400 dark:border-blue-600 rounded-3xl p-6 shadow-cartoon hover:shadow-glow-blue transition-all duration-300 hover:-translate-y-3 transform text-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-bl-full transition-all duration-300 group-hover:scale-110"></div>
+                    <div class="text-6xl mb-3 group-hover:scale-110 transition-transform duration-300 filter drop-shadow">📂</div>
+                    <span class="text-blue-500 dark:text-blue-300 font-extrabold text-3xl block">501</span>
+                    <span class="text-xs font-semibold uppercase bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 py-1 px-3 rounded-full mt-2 inline-block">Thursday</span>
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-bold">13:30 - 14:10</div>
+                    <div id="stats-501" class="text-xs text-slate-400 mt-3 font-medium">0 Students</div>
+                </div>
+
+                <!-- Folder 502 (Green) -->
+                <div onclick="selectClass('502')" class="group cursor-pointer bg-white dark:bg-slate-800 border-4 border-green-400 dark:border-green-600 rounded-3xl p-6 shadow-cartoon hover:shadow-glow-green transition-all duration-300 hover:-translate-y-3 transform text-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-bl-full transition-all duration-300 group-hover:scale-110"></div>
+                    <div class="text-6xl mb-3 group-hover:scale-110 transition-transform duration-300 filter drop-shadow">📂</div>
+                    <span class="text-green-500 dark:text-green-300 font-extrabold text-3xl block">502</span>
+                    <span class="text-xs font-semibold uppercase bg-green-50 dark:bg-green-900/50 text-green-600 dark:text-green-300 py-1 px-3 rounded-full mt-2 inline-block">Tuesday</span>
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-bold">15:15 - 15:55</div>
+                    <div id="stats-502" class="text-xs text-slate-400 mt-3 font-medium">0 Students</div>
+                </div>
+
+                <!-- Folder 503 (Orange) -->
+                <div onclick="selectClass('503')" class="group cursor-pointer bg-white dark:bg-slate-800 border-4 border-orange-400 dark:border-orange-600 rounded-3xl p-6 shadow-cartoon hover:shadow-glow-orange transition-all duration-300 hover:-translate-y-3 transform text-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-bl-full transition-all duration-300 group-hover:scale-110"></div>
+                    <div class="text-6xl mb-3 group-hover:scale-110 transition-transform duration-300 filter drop-shadow">📂</div>
+                    <span class="text-orange-500 dark:text-orange-300 font-extrabold text-3xl block">503</span>
+                    <span class="text-xs font-semibold uppercase bg-orange-50 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 py-1 px-3 rounded-full mt-2 inline-block">Monday</span>
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-bold">13:30 - 14:10</div>
+                    <div id="stats-503" class="text-xs text-slate-400 mt-3 font-medium">0 Students</div>
+                </div>
+
+                <!-- Folder 504 (Purple) -->
+                <div onclick="selectClass('504')" class="group cursor-pointer bg-white dark:bg-slate-800 border-4 border-purple-400 dark:border-purple-600 rounded-3xl p-6 shadow-cartoon hover:shadow-glow-purple transition-all duration-300 hover:-translate-y-3 transform text-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-bl-full transition-all duration-300 group-hover:scale-110"></div>
+                    <div class="text-6xl mb-3 group-hover:scale-110 transition-transform duration-300 filter drop-shadow">📂</div>
+                    <span class="text-purple-500 dark:text-purple-300 font-extrabold text-3xl block">504</span>
+                    <span class="text-xs font-semibold uppercase bg-purple-50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 py-1 px-3 rounded-full mt-2 inline-block">Tuesday</span>
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-bold">14:20 - 15:00</div>
+                    <div id="stats-504" class="text-xs text-slate-400 mt-3 font-medium">0 Students</div>
+                </div>
+
+                <!-- Folder 505 (Red) -->
+                <div onclick="selectClass('505')" class="group cursor-pointer bg-white dark:bg-slate-800 border-4 border-red-400 dark:border-red-600 rounded-3xl p-6 shadow-cartoon hover:shadow-glow-red transition-all duration-300 hover:-translate-y-3 transform text-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-bl-full transition-all duration-300 group-hover:scale-110"></div>
+                    <div class="text-6xl mb-3 group-hover:scale-110 transition-transform duration-300 filter drop-shadow">📂</div>
+                    <span class="text-red-500 dark:text-red-300 font-extrabold text-3xl block">505</span>
+                    <span class="text-xs font-semibold uppercase bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-300 py-1 px-3 rounded-full mt-2 inline-block">Monday</span>
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-bold">14:20 - 15:00</div>
+                    <div id="stats-505" class="text-xs text-slate-400 mt-3 font-medium">0 Students</div>
+                </div>
+
+                <!-- Folder 506 (Yellow) -->
+                <div onclick="selectClass('506')" class="group cursor-pointer bg-white dark:bg-slate-800 border-4 border-yellow-400 dark:border-yellow-600 rounded-3xl p-6 shadow-cartoon hover:shadow-glow-yellow transition-all duration-300 hover:-translate-y-3 transform text-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-bl-full transition-all duration-300 group-hover:scale-110"></div>
+                    <div class="text-6xl mb-3 group-hover:scale-110 transition-transform duration-300 filter drop-shadow">📂</div>
+                    <span class="text-yellow-500 dark:text-yellow-300 font-extrabold text-3xl block">506</span>
+                    <span class="text-xs font-semibold uppercase bg-yellow-50 dark:bg-yellow-900/50 text-yellow-600 dark:text-yellow-300 py-1 px-3 rounded-full mt-2 inline-block">Thursday</span>
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-bold">15:15 - 15:55</div>
+                    <div id="stats-506" class="text-xs text-slate-400 mt-3 font-medium">0 Students</div>
+                </div>
+            </div>
+
+            <!-- Welcome Poster -->
+            <div class="mt-12 glass-panel p-8 rounded-3xl border-4 border-indigo-200 dark:border-indigo-900 flex flex-col md:flex-row items-center justify-between shadow-cartoon-lg">
+                <div class="mb-6 md:mb-0 md:mr-8 text-center md:text-left">
+                    <h3 class="text-2xl font-black text-indigo-700 dark:text-indigo-300 mb-2">Hello, ESL Teacher! 👩‍🏫👨‍🏫</h3>
+                    <p class="text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed">
+                        Manage your Grade 5 student scores with absolute ease. Customize grading weights, add dynamic activities, award Dojo points, track attendance, and download premium reports with an elegant, customizable Pixar-style dashboard. All records are autosaved locally!
+                    </p>
+                </div>
+                <div class="flex-shrink-0 bg-gradient-to-tr from-purple-500 to-indigo-600 p-4 rounded-2xl text-white font-bold text-center shadow-cartoon transform -rotate-2">
+                    <div class="text-4xl">🏅</div>
+                    <div class="mt-1 text-sm tracking-wide uppercase">Top Student Spotlight</div>
+                    <div id="overall-star" class="text-lg mt-2 text-yellow-300 font-extrabold">No Data Yet</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- CLASS RECORDS PAGE (HIDDEN BY DEFAULT) -->
+        <main id="class-screen" class="hidden transition-all duration-500 transform translate-y-10">
+            
+            <!-- Class Page Header -->
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4 no-print">
+                <!-- Back to Folders Button -->
+                <button onclick="backToFolders()" class="flex items-center space-x-2 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 px-5 py-2.5 rounded-2xl shadow-cartoon hover:translate-x-[-4px] active:scale-95 transition-transform font-bold text-slate-700 dark:text-slate-300">
+                    <i class="fa-solid fa-chevron-left text-lg text-indigo-500"></i>
+                    <span>Back to Classes</span>
+                </button>
+
+                <!-- Class Header Card -->
+                <div class="flex items-center space-x-4">
+                    <div id="class-avatar-bg" class="w-16 h-16 rounded-3xl flex items-center justify-center text-4xl shadow-cartoon border-4 border-white dark:border-slate-700">
+                        🏫
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-3">
+                            <h2 id="active-class-title" class="text-3xl font-extrabold tracking-tight">Class 501</h2>
+                            <span id="class-badge" class="px-3 py-1 text-xs font-black uppercase tracking-widest text-white rounded-full">BLUE</span>
+                        </div>
+                        <p id="class-schedule-info" class="text-xs text-slate-500 dark:text-slate-400 font-bold">Schedule • Thursday • 13:30 - 14:10</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats Widget -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 no-print">
+                <div class="glass-panel p-4 rounded-2xl border-b-4 border-blue-500 flex items-center space-x-4 shadow-cartoon">
+                    <div class="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-xl text-blue-500 text-2xl">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase">Students</div>
+                        <div id="stat-total-students" class="text-2xl font-black">0</div>
+                    </div>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl border-b-4 border-emerald-500 flex items-center space-x-4 shadow-cartoon">
+                    <div class="bg-emerald-100 dark:bg-emerald-900/40 p-3 rounded-xl text-emerald-500 text-2xl">
+                        <i class="fa-solid fa-chart-simple"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase">Class Average</div>
+                        <div id="stat-class-average" class="text-2xl font-black">0%</div>
+                    </div>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl border-b-4 border-purple-500 flex items-center space-x-4 shadow-cartoon">
+                    <div class="bg-purple-100 dark:bg-purple-900/40 p-3 rounded-xl text-purple-500 text-2xl">
+                        <i class="fa-solid fa-check-double"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase">Attendance Rate</div>
+                        <div id="stat-attendance" class="text-2xl font-black">100%</div>
+                    </div>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl border-b-4 border-amber-500 flex items-center space-x-4 shadow-cartoon">
+                    <div class="bg-amber-100 dark:bg-amber-900/40 p-3 rounded-xl text-amber-500 text-2xl">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase">Top Star</div>
+                        <div id="stat-top-student" class="text-base font-black truncate max-w-[120px]">None</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toolbar Options / Functions -->
+            <div class="glass-panel p-4 rounded-2xl mb-6 flex flex-wrap gap-4 items-center justify-between shadow-cartoon no-print">
+                <div class="flex flex-wrap gap-2 items-center">
+                    <button onclick="addNewStudent()" class="bg-green-500 hover:bg-green-600 text-white font-extrabold px-4 py-2.5 rounded-xl shadow-cartoon transition-all duration-150 hover:translate-y-[-2px] active:translate-y-0 flex items-center space-x-2 text-sm">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Add Student</span>
+                    </button>
+                    
+                    <button id="btn-add-category" onclick="triggerAddColumn()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold px-4 py-2.5 rounded-xl shadow-cartoon transition-all duration-150 hover:translate-y-[-2px] active:translate-y-0 flex items-center space-x-2 text-sm">
+                        <i class="fa-solid fa-circle-plus"></i>
+                        <span>Add Category</span>
+                    </button>
+
+                    <button id="btn-add-week" onclick="addAttendanceWeek()" class="hidden bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold px-4 py-2.5 rounded-xl shadow-cartoon transition-all duration-150 hover:translate-y-[-2px] active:translate-y-0 flex items-center space-x-2 text-sm">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                        <span>Add Week</span>
+                    </button>
+                    
+                    <button onclick="saveActiveRecord()" class="bg-blue-500 hover:bg-blue-600 text-white font-extrabold px-4 py-2.5 rounded-xl shadow-cartoon transition-all duration-150 hover:translate-y-[-2px] active:translate-y-0 flex items-center space-x-2 text-sm">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Save</span>
+                    </button>
+                    <button onclick="confirmReset()" class="bg-red-500 hover:bg-red-600 text-white font-extrabold px-4 py-2.5 rounded-xl shadow-cartoon transition-all duration-150 hover:translate-y-[-2px] active:translate-y-0 flex items-center space-x-2 text-sm">
+                        <i class="fa-solid fa-trash-arrow-up"></i>
+                        <span>Reset Class</span>
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                    <!-- Tab Switcher -->
+                    <div class="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <button onclick="changeRecordTab('grades')" id="tab-grades" class="px-3 py-1.5 rounded-lg text-xs font-black transition-all bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm">
+                            📝 Grades
+                        </button>
+                        <button onclick="changeRecordTab('attendance')" id="tab-attendance" class="px-3 py-1.5 rounded-lg text-xs font-black transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+                            📅 Weekly Attendance
+                        </button>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="relative w-full sm:w-48">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="student-search" oninput="searchStudents()" placeholder="Search..." class="pl-9 pr-4 py-2 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm">
+                    </div>
+                    <!-- Sort -->
+                    <button onclick="sortAlphabetically()" class="bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 p-2 rounded-xl text-slate-700 dark:text-slate-300 shadow-cartoon hover:scale-105 active:scale-95 transition-transform" title="Sort A-Z">
+                        <i class="fa-solid fa-arrow-down-a-z text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SPREADSHEET TABLE & CONTENT CONTAINER -->
+            <div class="grid grid-cols-1 xl:grid-cols-5 gap-6 items-start">
+                
+                <!-- Large spreadsheet element -->
+                <div class="xl:col-span-4 glass-panel rounded-3xl p-6 shadow-cartoon-lg overflow-hidden border-4 border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center justify-between flex-wrap gap-4 mb-4">
+                        <div class="flex items-center space-x-2 flex-wrap gap-2">
+                            <h3 id="panel-title" class="font-extrabold text-xl text-slate-700 dark:text-slate-200 flex items-center space-x-2">
+                                <span>📝 Grades Sheet</span>
+                            </h3>
+                            <span id="weight-badge" class="text-xs font-semibold px-2.5 py-1 rounded-md">Checking weights...</span>
+                        </div>
+                        <div class="no-print flex space-x-2">
+                            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-1.5 px-3 rounded-lg text-xs flex items-center space-x-1 shadow-cartoon">
+                                <i class="fa-solid fa-file-excel"></i>
+                                <span>Excel (CSV)</span>
+                            </button>
+                            <button onclick="exportToPDF()" class="bg-red-600 hover:bg-red-700 text-white font-extrabold py-1.5 px-3 rounded-lg text-xs flex items-center space-x-1 shadow-cartoon">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <span>PDF</span>
+                            </button>
+                            <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-1.5 px-3 rounded-lg text-xs flex items-center space-x-1 shadow-cartoon">
+                                <i class="fa-solid fa-print"></i>
+                                <span>Print</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Table Wrapper -->
+                    <div class="overflow-x-auto overflow-y-auto max-h-[680px] w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700">
+                        <table id="grades-table" class="min-w-full text-sm text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700/80 text-slate-700 dark:text-slate-300 font-extrabold border-b-2 border-slate-300 dark:border-slate-700">
+                                    <!-- Dynamic elements inserted via JavaScript -->
+                                </tr>
+                            </thead>
+                            <tbody id="student-rows" class="divide-y divide-slate-200 dark:divide-slate-700/50">
+                                <!-- Student rows dynamically inserted -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SIDEBAR MODULES (Notes, Leaderboard, etc) -->
+                <div class="flex flex-col gap-6 no-print">
+                    <!-- Top Student Leaderboard -->
+                    <div class="glass-panel p-6 rounded-3xl border-4 border-amber-300 dark:border-amber-700 shadow-cartoon-lg relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-20 h-20 bg-amber-400/20 rounded-bl-full pointer-events-none"></div>
+                        <h3 class="font-black text-xl text-amber-600 dark:text-amber-400 mb-4 flex items-center space-x-2">
+                            <span>👑 Class Leaderboard</span>
+                        </h3>
+                        <div class="space-y-3" id="class-leaderboard">
+                            <div class="text-xs text-slate-400">Loading ranking...</div>
+                        </div>
+                    </div>
+
+                    <!-- Teacher Notes -->
+                    <div class="glass-panel p-6 rounded-3xl border-4 border-slate-300 dark:border-slate-700 shadow-cartoon-lg">
+                        <h3 class="font-extrabold text-xl text-slate-700 dark:text-slate-300 mb-2 flex items-center space-x-2">
+                            <span>📓 Classroom Notes</span>
+                        </h3>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mb-3">Teacher notes for this class (saved automatically):</p>
+                        <textarea id="teacher-notes" oninput="saveTeacherNotes()" placeholder="Type homework notices, exam schedules, or notable behaviors..." class="w-full h-40 p-3 text-sm rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 focus:ring-2 focus:ring-indigo-400 focus:outline-none"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- SYSTEM MODALS / OVERLAYS -->
+        <!-- Add Activity (Column) Modal -->
+        <div id="modal-add-column" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+            <div class="bg-white dark:bg-slate-800 border-4 border-indigo-400 dark:border-indigo-600 rounded-3xl p-6 max-w-sm w-full mx-4 shadow-cartoon-lg transform scale-95 transition-all">
+                <div class="text-center mb-4">
+                    <span class="text-4xl">📊</span>
+                    <h3 class="text-xl font-black mt-2">New Class Category</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Add a new category with a customized weighted percentage.</p>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-black uppercase text-slate-600 dark:text-slate-400 mb-1">Activity Name</label>
+                    <input type="text" id="new-column-name" placeholder="E.g., Midterm Exam" class="w-full p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-black uppercase text-slate-600 dark:text-slate-400 mb-1">Weight (%)</label>
+                    <input type="number" id="new-column-weight" min="0" max="100" value="10" placeholder="E.g., 10" class="w-full p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="closeAddColumnModal()" class="flex-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold py-2 rounded-xl text-sm shadow-cartoon">
+                        Cancel
+                    </button>
+                    <button onclick="confirmAddColumn()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold py-2 rounded-xl text-sm shadow-cartoon">
+                        Add
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm Reset Modal -->
+        <div id="modal-reset" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+            <div class="bg-white dark:bg-slate-800 border-4 border-red-500 rounded-3xl p-6 max-w-sm w-full mx-4 shadow-cartoon-lg transform scale-95 transition-all">
+                <div class="text-center mb-4">
+                    <span class="text-4xl">⚠️</span>
+                    <h3 class="text-xl font-black mt-2">Are you sure?</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">This will delete all student records in this class and restore default settings.</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="closeResetModal()" class="flex-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold py-2 rounded-xl text-sm shadow-cartoon">
+                        Cancel
+                    </button>
+                    <button onclick="resetActiveRecord()" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-extrabold py-2 rounded-xl text-sm shadow-cartoon">
+                        Yes, Delete All
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive ESL Guide Modal -->
+        <div id="modal-guide" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+            <div class="bg-white dark:bg-slate-800 border-4 border-indigo-400 dark:border-indigo-600 rounded-3xl p-6 max-w-lg w-full mx-4 shadow-cartoon-lg max-h-[85vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4 border-b-2 border-slate-100 dark:border-slate-700 pb-2">
+                    <h3 class="text-2xl font-black text-indigo-500">📝 Teacher Manual & Features</h3>
+                    <button onclick="closeGuide()" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <div class="space-y-4 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <p>Welcome to your premium <strong>Grade 5 Class Record System</strong>. Here are the features at your disposal:</p>
+                    <ul class="list-disc list-inside space-y-2 pl-2">
+                        <li><strong>Preloaded Classes:</strong> Classes 501 to 506 are preloaded with their specific schedules, timers, and official student groups (including empty slots ready to be filled out).</li>
+                        <li><strong>Customizable Category Weights:</strong> Tweak weights inside category headers. Make sure total weight sums up to exactly 100%!</li>
+                        <li><strong>Dynamic Multi-Week Attendance:</strong> Switch between the "Grades" and "Weekly Attendance" sheets. Log status (Present, Absent, Late, Excused) by clicking each student's weekly badge. This does not alter the grade average calculations.</li>
+                        <li><strong>Row Selection:</strong> Click a student's row or name to highlight the row. This provides a clear, highlighted guide to help you scan grade information accurately!</li>
+                        <li><strong>Grading Scale:</strong>
+                            <ul class="list-disc list-inside pl-5 mt-1 text-xs">
+                                <li>97-100: <span class="text-emerald-500 font-bold">Excellent 🌟 (Confetti Celebration!)</span></li>
+                                <li>90-96: <span class="text-green-500 font-bold">Very Good ✨</span></li>
+                                <li>80-89: <span class="text-amber-500 font-bold">Good 👍</span></li>
+                                <li>75-79: <span class="text-blue-500 font-bold">Fair 👌</span></li>
+                                <li>Below 75: <span class="text-red-500 font-bold">Needs Work 💪</span></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let activeClass = null;
+        let systemData = {};
+        let currentTab = 'grades'; // 'grades' or 'attendance'
+        let highlightedStudentId = null; // Track currently selected row for highlighting
+        const storageKey = 'grade5_class_record_v4'; // Key updated for version tracking with preloaded data
+
+        // Audio System
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.1);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                } else if (type === 'delete') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(250, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                }
+            } catch (e) {
+                console.warn('Audio requires user interaction.');
+            }
+        }
+
+        const classSchedules = {
+            '501': { day: 'Thursday', time: '13:30 - 14:10' },
+            '502': { day: 'Tuesday', time: '15:15 - 15:55' },
+            '503': { day: 'Monday', time: '13:30 - 14:10' },
+            '504': { day: 'Tuesday', time: '14:20 - 15:00' },
+            '505': { day: 'Monday', time: '14:20 - 15:00' },
+            '506': { day: 'Thursday', time: '15:15 - 15:55' }
+        };
+
+        const preloadedStudentsData = {
+            '501': ["James", "Jack", "Evan", "Josh", "Kevin", "Tim", "Patrick", "Samuel", "Arthur", "Brian", "Leo", "Tarence", "Tina", "Polly", "Yoyo", "Alisa", "Daisy", "Queenie", "Sophia", "Poppy", "Hannah", "Penny", "", "", ""],
+            '502': ["Terry", "Ryder", "Hans", "Sean", "Eric", "Flash", "Ray", "Curtis", "Allen", "Allen", "Ben", "Judy", "Juno", "Emily", "Jenny", "Annie", "Sherry", "Allison", "Briana", "Jessie", "Eva", "Star", "Emily", "", ""],
+            '503': ["Carter", "Cody", "Max", "Paul", "Eason", "Liam", "Kiwi", "Ray", "Lucas", "Jack", "Eno", "Zoey", "Josie", "Ariel", "Moon", "Zoie", "Anrain", "Ann", "Demi", "Tiffany", "Quinn", "", "", "", ""],
+            '504': ["Jeremy", "Hardy", "Leo", "Lucas", "Ray", "Wesley", "Stanley", "", "Eric", "Rex", "Ian", "Alice", "Cynthia", "Selina", "Allison", "Jade", "Sophia", "Faye", "Alisha", "Luna", "Fifi", "Emilia", "Jing-Ru", "", ""],
+            '505': ["Anton", "Jack", "Jeter", "Sid", "James", "Nick", "George", "Laurence", "Mickey", "Ray", "Eason", "Suzy", "Anna", "Angel", "Nina", "Angela", "Masha", "Joyann", "Jean", "Alisa", "Neveah", "Sophia", "Sophia", "", ""],
+            '506': ["Aaron", "Lucas", "Oliver", "Jeremy", "Eric", "Alvin", "Ryan", "Thomas", "Leon", "Aaron", "Andy", "Ken", "Nancy", "Ivy", "Yumi", "Claire", "Mia", "Ariel", "Christine", "Eva", "Sirria", "Gem", "Wei", "", ""]
+        };
+
+        const defaultColumns = [
+            { key: "quiz", label: "Quiz", weight: 20 },
+            { key: "group", label: "Group Activity", weight: 15 },
+            { key: "speaking", label: "Speaking Test", weight: 15 },
+            { key: "reading", label: "Reading Test", weight: 20 },
+            { key: "oral", label: "Oral Recitation", weight: 10 },
+            { key: "participation", label: "Class Participation", weight: 10 },
+            { key: "dojo", label: "Dojo Points", weight: 10 }
+        ];
+
+        const emojiAvatars = ["🐱", "🐶", "🦊", "🦁", "🐯", "🐼", "🐨", "🐻", "🐸", "🐰", "🐵", "🐙", "🦖", "🦄", "🚀", "🎨", "🌟"];
+
+        window.addEventListener('load', () => {
+            initLocalStorage();
+            updateFolderStats();
+            detectOverallTopStar();
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        });
+
+        function initLocalStorage() {
+            const stored = localStorage.getItem(storageKey);
+            if (stored) {
+                systemData = JSON.parse(stored);
+            } else {
+                const classes = ['501', '502', '503', '504', '505', '506'];
+                classes.forEach(cls => {
+                    const names = preloadedStudentsData[cls];
+                    const students = names.map((name, index) => {
+                        return {
+                            id: `stud_${cls}_${index}_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+                            name: name,
+                            avatar: emojiAvatars[index % emojiAvatars.length],
+                            attendance: true,
+                            grades: {
+                                quiz: name ? 85 : "",
+                                group: name ? 90 : "",
+                                speaking: name ? 88 : "",
+                                reading: name ? 85 : "",
+                                oral: name ? 90 : "",
+                                participation: name ? 92 : "",
+                                dojo: name ? 10 : ""
+                            },
+                            attendanceWeeks: {} // Map: { "Week 1": "P", "Week 2": "P", ... }
+                        };
+                    });
+
+                    systemData[cls] = {
+                        students: students,
+                        columns: [...defaultColumns],
+                        notes: "",
+                        weeksCount: 10 // Default weeks count for attendance tracker
+                    };
+                });
+                saveToLocalStorage();
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem(storageKey, JSON.stringify(systemData));
+        }
+
+        function updateFolderStats() {
+            const classes = ['501', '502', '503', '504', '505', '506'];
+            classes.forEach(cls => {
+                const count = systemData[cls] ? systemData[cls].students.length : 0;
+                document.getElementById(`stats-${cls}`).innerText = `${count} Student${count !== 1 ? 's' : ''}`;
+            });
+        }
+
+        const canvas = document.getElementById("confetti");
+        const ctx = canvas.getContext("2d");
+        let confettiActive = false;
+        let particles = [];
+        const colors = ["#ff5964", "#35a7ff", "#386150", "#ffe74c", "#ffffff", "#ff82a9"];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function createConfetti() {
+            particles = [];
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    r: Math.random() * 6 + 4,
+                    d: Math.random() * canvas.height,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.random() * 10 - 5,
+                    tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+                    tiltAngle: 0
+                });
+            }
+        }
+
+        function drawConfetti() {
+            if (!confettiActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, idx) => {
+                p.tiltAngle += p.tiltAngleIncremental;
+                p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+                p.x += Math.sin(p.tiltAngle);
+                p.tilt = Math.sin(p.tiltAngle - idx / 3) * 15;
+
+                ctx.beginPath();
+                ctx.lineWidth = p.r;
+                ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+                ctx.stroke();
+
+                if (p.y > canvas.height) {
+                    particles[idx] = {
+                        x: Math.random() * canvas.width,
+                        y: -20,
+                        r: p.r,
+                        d: p.d,
+                        color: p.color,
+                        tilt: p.tilt,
+                        tiltAngleIncremental: p.tiltAngleIncremental,
+                        tiltAngle: p.tiltAngle
+                    };
+                }
+            });
+            requestAnimationFrame(drawConfetti);
+        }
+
+        function triggerConfetti() {
+            confettiActive = true;
+            createConfetti();
+            drawConfetti();
+            setTimeout(() => {
+                confettiActive = false;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }, 4000);
+        }
+
+        function selectClass(clsId) {
+            playSound('click');
+            activeClass = clsId;
+            currentTab = 'grades'; // reset tab state on switch
+            highlightedStudentId = null; // Clear row highlight on class switch
+
+            // Brand updates
+            const classMeta = {
+                '501': { bg: 'from-blue-400 to-blue-600', text: 'BLUE', border: 'border-blue-400' },
+                '502': { bg: 'from-green-400 to-green-600', text: 'GREEN', border: 'border-green-400' },
+                '503': { bg: 'from-orange-400 to-orange-600', text: 'ORANGE', border: 'border-orange-400' },
+                '504': { bg: 'from-purple-400 to-purple-600', text: 'PURPLE', border: 'border-purple-400' },
+                '505': { bg: 'from-red-400 to-red-600', text: 'RED', border: 'border-red-400' },
+                '506': { bg: 'from-yellow-400 to-yellow-600', text: 'YELLOW', border: 'border-yellow-400' }
+            };
+
+            const meta = classMeta[clsId];
+            document.getElementById('active-class-title').innerText = `Class ${clsId}`;
+            
+            const sched = classSchedules[clsId];
+            document.getElementById('class-schedule-info').innerText = `Schedule • ${sched.day} • ${sched.time}`;
+
+            const avatarBg = document.getElementById('class-avatar-bg');
+            avatarBg.className = `w-16 h-16 rounded-3xl flex items-center justify-center text-4xl shadow-cartoon border-4 border-white dark:border-slate-700 bg-gradient-to-br ${meta.bg}`;
+            
+            const badge = document.getElementById('class-badge');
+            badge.className = `px-3 py-1 text-xs font-black uppercase tracking-widest text-white rounded-full bg-gradient-to-r ${meta.bg}`;
+            badge.innerText = meta.text;
+
+            document.getElementById('teacher-notes').value = systemData[clsId].notes || "";
+
+            const folderScreen = document.getElementById('folder-screen');
+            const classScreen = document.getElementById('class-screen');
+            
+            folderScreen.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                folderScreen.classList.add('hidden');
+                classScreen.classList.remove('hidden');
+                setTimeout(() => {
+                    classScreen.classList.remove('translate-y-10');
+                    classScreen.classList.add('opacity-100', 'translate-y-0');
+                    updateTabUI();
+                    renderClassRecordTable();
+                }, 50);
+            }, 300);
+        }
+
+        function backToFolders() {
+            playSound('click');
+            const folderScreen = document.getElementById('folder-screen');
+            const classScreen = document.getElementById('class-screen');
+            
+            classScreen.classList.add('translate-y-10');
+            setTimeout(() => {
+                classScreen.classList.add('hidden');
+                folderScreen.classList.remove('hidden');
+                setTimeout(() => {
+                    folderScreen.classList.remove('opacity-0', 'scale-95');
+                    updateFolderStats();
+                    detectOverallTopStar();
+                }, 50);
+            }, 300);
+            activeClass = null;
+        }
+
+        function changeRecordTab(tab) {
+            playSound('click');
+            currentTab = tab;
+            updateTabUI();
+            renderClassRecordTable();
+        }
+
+        function updateTabUI() {
+            const tabGrades = document.getElementById('tab-grades');
+            const tabAttendance = document.getElementById('tab-attendance');
+            const btnAddCategory = document.getElementById('btn-add-category');
+            const btnAddWeek = document.getElementById('btn-add-week');
+            const weightBadge = document.getElementById('weight-badge');
+            const panelTitle = document.getElementById('panel-title');
+
+            if (currentTab === 'grades') {
+                tabGrades.className = "px-3 py-1.5 rounded-lg text-xs font-black transition-all bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm";
+                tabAttendance.className = "px-3 py-1.5 rounded-lg text-xs font-black transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200";
+                btnAddCategory.classList.remove('hidden');
+                btnAddWeek.classList.add('hidden');
+                weightBadge.classList.remove('hidden');
+                panelTitle.innerHTML = `<span>📝 Grades Sheet</span>`;
+            } else {
+                tabGrades.className = "px-3 py-1.5 rounded-lg text-xs font-black transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200";
+                tabAttendance.className = "px-3 py-1.5 rounded-lg text-xs font-black transition-all bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm";
+                btnAddCategory.classList.add('hidden');
+                btnAddWeek.classList.remove('hidden');
+                weightBadge.classList.add('hidden');
+                panelTitle.innerHTML = `<span>📅 Attendance Tracker</span>`;
+            }
+        }
+
+        function checkTotalWeights() {
+            const data = systemData[activeClass];
+            if (!data) return;
+            const totalWeight = data.columns.reduce((sum, col) => sum + (parseFloat(col.weight) || 0), 0);
+            const badge = document.getElementById('weight-badge');
+            if (badge) {
+                if (totalWeight === 100) {
+                    badge.className = "text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300";
+                    badge.innerHTML = `<i class="fa-solid fa-circle-check"></i> Weights: 100%`;
+                } else {
+                    badge.className = "text-xs font-semibold px-2.5 py-1 rounded-md bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300 animate-pulse border border-red-300 dark:border-red-900";
+                    badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Total Weight: ${totalWeight}% (Must be 100%)`;
+                }
+            }
+        }
+
+        function updateColumnWeight(colKey, val) {
+            const numVal = parseFloat(val) || 0;
+            const col = systemData[activeClass].columns.find(c => c.key === colKey);
+            if (col) {
+                col.weight = numVal;
+                saveToLocalStorage();
+                checkTotalWeights();
+                renderClassRecordTable();
+            }
+        }
+
+        function calculateGrades(grades, columns) {
+            let weightedSum = 0;
+            let activeWeightSum = 0;
+            let count = 0;
+
+            columns.forEach(col => {
+                const val = parseFloat(grades[col.key]);
+                const weight = parseFloat(col.weight) || 0;
+                if (!isNaN(val)) {
+                    weightedSum += val * (weight / 100);
+                    activeWeightSum += weight / 100;
+                    count++;
+                }
+            });
+
+            let finalAverage = 0;
+            if (activeWeightSum > 0) {
+                finalAverage = Math.round((weightedSum / activeWeightSum));
+            }
+
+            let total = 0;
+            columns.forEach(col => {
+                const val = parseFloat(grades[col.key]);
+                if (!isNaN(val)) total += val;
+            });
+
+            let gradeText = "No Grade";
+            let badgeClass = "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300";
+            
+            if (count > 0) {
+                if (finalAverage >= 97) {
+                    gradeText = "Excellent 🌟";
+                    badgeClass = "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-glow-green";
+                } else if (finalAverage >= 90) {
+                    gradeText = "Very Good ✨";
+                    badgeClass = "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300 border border-green-200 dark:border-green-800";
+                } else if (finalAverage >= 80) {
+                    gradeText = "Good 👍";
+                    badgeClass = "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200";
+                } else if (finalAverage >= 75) {
+                    gradeText = "Fair 👌";
+                    badgeClass = "bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200";
+                } else {
+                    gradeText = "Needs Work 💪";
+                    badgeClass = "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300 border border-red-200";
+                }
+            }
+
+            return { total, average: finalAverage, gradeText, badgeClass };
+        }
+
+        // Dynamic row selection toggling handler
+        function toggleRowHighlight(studentId, event) {
+            // Guard against resetting highlight when buttons, delete triggers, or check toggles are clicked
+            if (event) {
+                const target = event.target;
+                if (
+                    target.tagName === 'BUTTON' || 
+                    target.closest('button') || 
+                    target.type === 'checkbox' || 
+                    target.closest('label') ||
+                    target.classList.contains('fa-trash')
+                ) {
+                    return;
+                }
+            }
+
+            if (highlightedStudentId === studentId) {
+                highlightedStudentId = null; // Toggle selection off
+            } else {
+                highlightedStudentId = studentId; // Highlight selected student row
+            }
+            
+            // Apply highlighting classes directly to DOM to preserve layout focus state
+            updateRowHighlightDOM();
+        }
+
+        // Direct DOM update function prevents focus loss during inline cell edits
+        function updateRowHighlightDOM() {
+            const rows = document.querySelectorAll('#student-rows tr');
+            rows.forEach(row => {
+                row.classList.remove('row-highlighted');
+            });
+
+            if (highlightedStudentId) {
+                const targetRow = document.getElementById(`row-${highlightedStudentId}`);
+                if (targetRow) {
+                    targetRow.classList.add('row-highlighted');
+                }
+            }
+        }
+
+        function renderClassRecordTable() {
+            const data = systemData[activeClass];
+            const tbody = document.getElementById('student-rows');
+            const theadRow = document.querySelector('#grades-table thead tr');
+            
+            if (currentTab === 'grades') {
+                theadRow.innerHTML = `
+                    <th class="p-3 text-center w-14 sticky-header-avatar bg-slate-200 dark:bg-slate-800">Avatar</th>
+                    <th class="p-3 min-w-[180px] sticky-header-name bg-slate-200 dark:bg-slate-800">Student Name</th>
+                    <th class="p-3 text-center min-w-[100px]" title="Daily Attendance check">Attendance</th>
+                `;
+                
+                data.columns.forEach(col => {
+                    theadRow.innerHTML += `
+                        <th class="p-3 text-center min-w-[110px] relative group/header bg-slate-50/50 dark:bg-slate-800/20 rounded-t-xl">
+                            <span class="cursor-help font-extrabold text-xs block mb-1 text-slate-700 dark:text-slate-300 truncate" title="Click to rename" onclick="renameColumn('${col.key}')">
+                                ${col.label}
+                            </span>
+                            <div class="flex items-center justify-center space-x-0.5 text-xs">
+                                <input type="number" min="0" max="100" value="${col.weight || 0}" onchange="updateColumnWeight('${col.key}', this.value)" class="w-11 p-1 text-center bg-white/80 dark:bg-slate-800/80 rounded-lg border border-slate-300 dark:border-slate-600 font-extrabold text-indigo-600 dark:text-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 shadow-sm">%
+                            </div>
+                            <button onclick="deleteColumn('${col.key}')" class="absolute top-1 right-1 text-red-500 hover:text-red-700 opacity-0 group-hover/header:opacity-100 transition-opacity no-print" title="Delete Category">
+                                <i class="fa-solid fa-circle-xmark text-sm"></i>
+                            </button>
+                        </th>
+                    `;
+                });
+                
+                theadRow.innerHTML += `
+                    <th class="p-3 text-center bg-indigo-50 dark:bg-slate-800/80 font-black text-indigo-600 dark:text-indigo-400 min-w-[70px]">Total</th>
+                    <th class="p-3 text-center bg-indigo-50 dark:bg-slate-800/80 font-black text-indigo-600 dark:text-indigo-400 min-w-[70px]">Average</th>
+                    <th class="p-3 text-center bg-indigo-50 dark:bg-slate-800/80 font-black text-indigo-600 dark:text-indigo-400 min-w-[110px]">Grade Status</th>
+                    <th class="p-3 text-center w-12 no-print">Actions</th>
+                `;
+
+                // Build Rows for Grades
+                tbody.innerHTML = '';
+                if (data.students.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="${data.columns.length + 7}" class="p-8 text-center text-slate-400 dark:text-slate-500 font-medium">
+                                📁 No students here. Add a student using the "Add Student" button!
+                            </td>
+                        </tr>
+                    `;
+                    checkTotalWeights();
+                    updateDashboardStats();
+                    renderLeaderboard();
+                    return;
+                }
+
+                data.students.forEach((student, index) => {
+                    const isHighlighted = student.id === highlightedStudentId;
+                    let gradeRowHtml = `
+                        <tr id="row-${student.id}" onclick="toggleRowHighlight('${student.id}', event)" class="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer ${isHighlighted ? 'row-highlighted' : ''}">
+                            <td class="p-3 text-center sticky-avatar bg-white dark:bg-slate-900 group-hover:bg-slate-100 dark:group-hover:bg-slate-800 transition-colors">
+                                <button onclick="changeAvatar(${index})" class="text-2xl transform hover:scale-125 transition-transform" title="Change Avatar">
+                                    ${student.avatar || "🐱"}
+                                </button>
+                            </td>
+                            <td class="p-3 font-semibold sticky-name bg-white dark:bg-slate-900 group-hover:bg-slate-100 dark:group-hover:bg-slate-800 transition-colors">
+                                <input type="text" value="${student.name}" placeholder="Type name..." onchange="updateStudentName(${index}, this.value)" class="bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-400 focus:outline-none w-full font-bold">
+                            </td>
+                            <td class="p-3 text-center">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" ${student.attendance ? 'checked' : ''} onchange="toggleAttendance(${index}, this.checked)" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-500"></div>
+                                </label>
+                            </td>
+                    `;
+
+                    data.columns.forEach(col => {
+                        const score = student.grades[col.key] !== undefined ? student.grades[col.key] : "";
+                        gradeRowHtml += `
+                            <td class="p-3 text-center">
+                                <input type="number" min="0" max="100" value="${score}" oninput="updateScore(${index}, '${col.key}', this.value)" placeholder="--" class="w-16 p-1.5 text-center bg-white dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 font-bold focus:ring-2 focus:ring-indigo-400 focus:outline-none text-sm shadow-sm transition-all">
+                            </td>
+                        `;
+                    });
+
+                    const calculations = calculateGrades(student.grades, data.columns);
+
+                    gradeRowHtml += `
+                            <td class="p-3 text-center font-bold text-slate-600 dark:text-slate-300 bg-slate-50/40 dark:bg-slate-800/10">
+                                ${calculations.total}
+                            </td>
+                            <td class="p-3 text-center font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50/20 dark:bg-slate-800/10">
+                                ${calculations.average}%
+                            </td>
+                            <td class="p-3 text-center bg-slate-50/20 dark:bg-slate-800/10">
+                                <span class="px-2.5 py-1 text-xs font-bold rounded-lg ${calculations.badgeClass} inline-flex items-center space-x-1">
+                                    <span>${calculations.gradeText}</span>
+                                </span>
+                            </td>
+                            <td class="p-3 text-center no-print">
+                                <button onclick="deleteStudent(${index})" class="text-red-400 hover:text-red-600 hover:scale-110 active:scale-90 transition-transform p-1" title="Delete Student">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += gradeRowHtml;
+                });
+            } else {
+                const weeksCount = data.weeksCount || 10;
+                theadRow.innerHTML = `
+                    <th class="p-3 text-center w-14 sticky-header-avatar bg-slate-200 dark:bg-slate-800">Avatar</th>
+                    <th class="p-3 min-w-[180px] sticky-header-name bg-slate-200 dark:bg-slate-800">Student Name</th>
+                `;
+                
+                for (let w = 1; w <= weeksCount; w++) {
+                    theadRow.innerHTML += `
+                        <th class="p-3 text-center min-w-[85px] relative group/header bg-slate-50/50 dark:bg-slate-800/20 rounded-t-xl text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                            Week ${w}
+                            <button onclick="removeAttendanceWeek(${w})" class="absolute top-1 right-1 text-red-400 hover:text-red-600 opacity-0 group-hover/header:opacity-100 transition-opacity no-print" title="Delete Week">
+                                <i class="fa-solid fa-circle-xmark text-xs"></i>
+                            </button>
+                        </th>
+                    `;
+                }
+                theadRow.innerHTML += `<th class="p-3 text-center w-12 no-print">Actions</th>`;
+
+                tbody.innerHTML = '';
+                if (data.students.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="${weeksCount + 3}" class="p-8 text-center text-slate-400 dark:text-slate-500 font-medium">
+                                📁 No students here. Add a student using the "Add Student" button!
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                data.students.forEach((student, index) => {
+                    const isHighlighted = student.id === highlightedStudentId;
+                    let attRowHtml = `
+                        <tr id="row-${student.id}" onclick="toggleRowHighlight('${student.id}', event)" class="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer ${isHighlighted ? 'row-highlighted' : ''}">
+                            <td class="p-3 text-center sticky-avatar bg-white dark:bg-slate-900 group-hover:bg-slate-100 dark:group-hover:bg-slate-800 transition-colors">
+                                <button onclick="changeAvatar(${index})" class="text-2xl transform hover:scale-125 transition-transform" title="Change Avatar">
+                                    ${student.avatar || "🐱"}
+                                </button>
+                            </td>
+                            <td class="p-3 font-semibold sticky-name bg-white dark:bg-slate-900 group-hover:bg-slate-100 dark:group-hover:bg-slate-800 transition-colors">
+                                <input type="text" value="${student.name}" placeholder="Type name..." onchange="updateStudentName(${index}, this.value)" class="bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-400 focus:outline-none w-full font-bold">
+                            </td>
+                    `;
+
+                    for (let w = 1; w <= weeksCount; w++) {
+                        const weekKey = `Week ${w}`;
+                        const status = student.attendanceWeeks ? (student.attendanceWeeks[weekKey] || 'P') : 'P';
+                        
+                        let badgeStyle = "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300";
+                        if (status === 'A') {
+                            badgeStyle = "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300";
+                        } else if (status === 'L') {
+                            badgeStyle = "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300";
+                        } else if (status === 'E') {
+                            badgeStyle = "bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300";
+                        }
+
+                        attRowHtml += `
+                            <td class="p-2 text-center">
+                                <button onclick="toggleWeekStatus(${index}, ${w})" class="px-2 py-1.5 text-xs font-black rounded-lg ${badgeStyle} shadow-sm w-16 transition-all duration-150 hover:scale-105" title="Click to Cycle: Present ➔ Absent ➔ Late ➔ Excused">
+                                    ${status}
+                                </button>
+                            </td>
+                        `;
+                    }
+
+                    attRowHtml += `
+                            <td class="p-3 text-center no-print">
+                                <button onclick="deleteStudent(${index})" class="text-red-400 hover:text-red-600 hover:scale-110 active:scale-90 transition-transform p-1" title="Delete Student">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += attRowHtml;
+                });
+            }
+
+            checkTotalWeights();
+            updateDashboardStats();
+            renderLeaderboard();
+        }
+
+        function updateScore(studentIndex, columnKey, value) {
+            const numVal = value === "" ? "" : parseFloat(value);
+            systemData[activeClass].students[studentIndex].grades[columnKey] = numVal;
+            saveToLocalStorage();
+            
+            const calc = calculateGrades(systemData[activeClass].students[studentIndex].grades, systemData[activeClass].columns);
+            if (calc.average >= 97 && !confettiActive) {
+                playSound('success');
+                triggerConfetti();
+            }
+            updateDashboardStats();
+            renderLeaderboard();
+        }
+
+        function updateStudentName(index, newName) {
+            systemData[activeClass].students[index].name = newName;
+            saveToLocalStorage();
+            renderLeaderboard();
+        }
+
+        function toggleAttendance(index, isChecked) {
+            playSound('click');
+            systemData[activeClass].students[index].attendance = isChecked;
+            saveToLocalStorage();
+            updateDashboardStats();
+        }
+
+        function toggleWeekStatus(studentIdx, weekNum) {
+            playSound('click');
+            const student = systemData[activeClass].students[studentIdx];
+            if (!student.attendanceWeeks) student.attendanceWeeks = {};
+            
+            const weekKey = `Week ${weekNum}`;
+            const current = student.attendanceWeeks[weekKey] || 'P';
+            
+            // Cycle: P ➔ A ➔ L ➔ E ➔ P
+            let nextStatus = 'P';
+            if (current === 'P') nextStatus = 'A';
+            else if (current === 'A') nextStatus = 'L';
+            else if (current === 'L') nextStatus = 'E';
+            else if (current === 'E') nextStatus = 'P';
+
+            student.attendanceWeeks[weekKey] = nextStatus;
+            saveToLocalStorage();
+            renderClassRecordTable();
+        }
+
+        function addAttendanceWeek() {
+            playSound('click');
+            const data = systemData[activeClass];
+            data.weeksCount = (data.weeksCount || 10) + 1;
+            saveToLocalStorage();
+            renderClassRecordTable();
+        }
+
+        function removeAttendanceWeek(wNum) {
+            playSound('delete');
+            const data = systemData[activeClass];
+            const weeksCount = data.weeksCount || 10;
+            if (weeksCount <= 1) return;
+
+            if (confirm(`Are you sure you want to delete Week ${wNum}? Historical records for this week will be lost.`)) {
+                // Shift statuses down
+                data.students.forEach(student => {
+                    if (student.attendanceWeeks) {
+                        for (let w = wNum; w < weeksCount; w++) {
+                            student.attendanceWeeks[`Week ${w}`] = student.attendanceWeeks[`Week ${w+1}`];
+                        }
+                        delete student.attendanceWeeks[`Week ${weeksCount}`];
+                    }
+                });
+                data.weeksCount = weeksCount - 1;
+                saveToLocalStorage();
+                renderClassRecordTable();
+            }
+        }
+
+        function changeAvatar(studentIndex) {
+            playSound('click');
+            const current = systemData[activeClass].students[studentIndex].avatar;
+            const idx = emojiAvatars.indexOf(current);
+            const nextIdx = (idx + 1) % emojiAvatars.length;
+            systemData[activeClass].students[studentIndex].avatar = emojiAvatars[nextIdx];
+            saveToLocalStorage();
+            renderClassRecordTable();
+        }
+
+        function addNewStudent() {
+            playSound('click');
+            const newId = "s_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+            const newStudent = {
+                id: newId,
+                name: "",
+                avatar: emojiAvatars[Math.floor(Math.random() * emojiAvatars.length)],
+                attendance: true,
+                grades: {},
+                attendanceWeeks: {}
+            };
+            
+            systemData[activeClass].columns.forEach(col => {
+                newStudent.grades[col.key] = "";
+            });
+
+            systemData[activeClass].students.push(newStudent);
+            saveToLocalStorage();
+            renderClassRecordTable();
+        }
+
+        function deleteStudent(index) {
+            playSound('delete');
+            const targetId = systemData[activeClass].students[index].id;
+            if (highlightedStudentId === targetId) {
+                highlightedStudentId = null; // Reset selection if deleted student was selected
+            }
+            systemData[activeClass].students.splice(index, 1);
+            saveToLocalStorage();
+            renderClassRecordTable();
+        }
+
+        function triggerAddColumn() {
+            playSound('click');
+            document.getElementById('modal-add-column').classList.remove('hidden');
+        }
+
+        function closeAddColumnModal() {
+            document.getElementById('modal-add-column').classList.add('hidden');
+        }
+
+        function confirmAddColumn() {
+            const inputName = document.getElementById('new-column-name').value.trim();
+            const inputWeight = parseFloat(document.getElementById('new-column-weight').value) || 0;
+            if (!inputName) return;
+
+            const key = "col_" + Date.now();
+            systemData[activeClass].columns.push({
+                key: key,
+                label: inputName,
+                weight: inputWeight
+            });
+
+            systemData[activeClass].students.forEach(student => {
+                student.grades[key] = "";
+            });
+
+            saveToLocalStorage();
+            closeAddColumnModal();
+            document.getElementById('new-column-name').value = "";
+            document.getElementById('new-column-weight').value = "10";
+            renderClassRecordTable();
+            playSound('success');
+        }
+
+        function renameColumn(colKey) {
+            playSound('click');
+            const col = systemData[activeClass].columns.find(c => c.key === colKey);
+            if (!col) return;
+            const newName = prompt("Enter the new Activity name:", col.label);
+            if (newName && newName.trim() !== "") {
+                col.label = newName.trim();
+                saveToLocalStorage();
+                renderClassRecordTable();
+            }
+        }
+
+        function deleteColumn(colKey) {
+            playSound('delete');
+            if (confirm("Are you sure you want to delete this category, its weight, and all scores associated with it?")) {
+                systemData[activeClass].columns = systemData[activeClass].columns.filter(c => c.key !== colKey);
+                systemData[activeClass].students.forEach(student => {
+                    delete student.grades[colKey];
+                });
+                saveToLocalStorage();
+                renderClassRecordTable();
+            }
+        }
+
+        function sortAlphabetically() {
+            playSound('click');
+            systemData[activeClass].students.sort((a, b) => {
+                if (!a.name) return 1;
+                if (!b.name) return -1;
+                return a.name.localeCompare(b.name);
+            });
+            saveToLocalStorage();
+            renderClassRecordTable();
+        }
+
+        function searchStudents() {
+            const query = document.getElementById('student-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#student-rows tr');
+            
+            rows.forEach((row) => {
+                const nameInput = row.querySelector('td:nth-child(2) input');
+                if (nameInput) {
+                    const nameVal = nameInput.value.toLowerCase();
+                    if (nameVal.includes(query)) {
+                        row.classList.remove('hidden');
+                    } else {
+                        row.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        function updateDashboardStats() {
+            const data = systemData[activeClass];
+            const total = data.students.length;
+            document.getElementById('stat-total-students').innerText = total;
+
+            let totalAvg = 0;
+            let countAvg = 0;
+            let presentCount = 0;
+
+            data.students.forEach(student => {
+                const calc = calculateGrades(student.grades, data.columns);
+                if (student.attendance) presentCount++;
+                if (!isNaN(calc.average)) {
+                    totalAvg += calc.average;
+                    countAvg++;
+                }
+            });
+
+            const overallAvg = countAvg > 0 ? Math.round(totalAvg / countAvg) : 0;
+            document.getElementById('stat-class-average').innerText = `${overallAvg}%`;
+
+            const attRate = total > 0 ? Math.round((presentCount / total) * 100) : 100;
+            document.getElementById('stat-attendance').innerText = `${attRate}%`;
+
+            let starName = "None";
+            let bestAvg = -1;
+            data.students.forEach(student => {
+                const calc = calculateGrades(student.grades, data.columns);
+                if (student.name && calc.average > bestAvg) {
+                    bestAvg = calc.average;
+                    starName = student.name.split(',')[0];
+                }
+            });
+            document.getElementById('stat-top-student').innerText = starName === "None" ? "None" : starName;
+        }
+
+        function renderLeaderboard() {
+            const data = systemData[activeClass];
+            const container = document.getElementById('class-leaderboard');
+            container.innerHTML = "";
+
+            const validStudents = data.students.filter(s => s.name && s.name.trim() !== "");
+
+            if (validStudents.length === 0) {
+                container.innerHTML = `<div class="text-xs text-slate-400">Add students to generate the leaderboard.</div>`;
+                return;
+            }
+
+            const ranked = validStudents.map(s => {
+                const calc = calculateGrades(s.grades, data.columns);
+                return { name: s.name, avatar: s.avatar, average: calc.average };
+            });
+
+            ranked.sort((a, b) => b.average - a.average);
+
+            const top3 = ranked.slice(0, 3);
+            const medals = ["🥇", "🥈", "🥉"];
+
+            top3.forEach((item, index) => {
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-2.5 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">${medals[index]}</span>
+                            <span class="text-xl">${item.avatar}</span>
+                            <span class="font-bold text-xs truncate max-w-[110px]">${item.name}</span>
+                        </div>
+                        <span class="text-xs font-black text-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 px-2 py-1 rounded-md">${item.average}%</span>
+                    </div>
+                `;
+            });
+        }
+
+        function detectOverallTopStar() {
+            let topStudentName = "No Data";
+            let topAvg = -1;
+            const classes = ['501', '502', '503', '504', '505', '506'];
+
+            classes.forEach(cls => {
+                if (systemData[cls]) {
+                    systemData[cls].students.forEach(student => {
+                        if (student.name && student.name.trim() !== "") {
+                            const calc = calculateGrades(student.grades, systemData[cls].columns);
+                            if (calc.average > topAvg) {
+                                topAvg = calc.average;
+                                topStudentName = `${student.avatar} ${student.name} (Class ${cls})`;
+                            }
+                        }
+                    });
+                }
+            });
+
+            document.getElementById('overall-star').innerHTML = topAvg > 0 ? `${topStudentName} <br><span class='text-xs font-black text-white'>Grade: ${topAvg}%</span>` : "No Data Yet";
+        }
+
+        function saveTeacherNotes() {
+            const notes = document.getElementById('teacher-notes').value;
+            systemData[activeClass].notes = notes;
+            saveToLocalStorage();
+        }
+
+        function saveActiveRecord() {
+            saveToLocalStorage();
+            playSound('success');
+            triggerConfetti();
+            
+            const savedBanner = document.createElement('div');
+            savedBanner.className = "fixed bottom-5 right-5 z-50 bg-emerald-500 text-white font-black px-6 py-3 rounded-2xl shadow-cartoon flex items-center space-x-2 border-2 border-white animate-bounce";
+            savedBanner.innerHTML = `<span>💾 Record Saved successfully!</span>`;
+            document.body.appendChild(savedBanner);
+            setTimeout(() => {
+                savedBanner.remove();
+            }, 3000);
+        }
+
+        function confirmReset() {
+            playSound('click');
+            document.getElementById('modal-reset').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('modal-reset').classList.add('hidden');
+        }
+
+        function resetActiveRecord() {
+            const names = preloadedStudentsData[activeClass];
+            const defaultSeeded = names.map((name, index) => {
+                return {
+                    id: `stud_${activeClass}_${index}_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+                    name: name,
+                    avatar: emojiAvatars[index % emojiAvatars.length],
+                    attendance: true,
+                    grades: {
+                        quiz: name ? 85 : "",
+                        group: name ? 90 : "",
+                        speaking: name ? 88 : "",
+                        reading: name ? 85 : "",
+                        oral: name ? 90 : "",
+                        participation: name ? 92 : "",
+                        dojo: name ? 10 : ""
+                    },
+                    attendanceWeeks: {}
+                };
+            });
+
+            systemData[activeClass] = {
+                students: defaultSeeded,
+                columns: [...defaultColumns],
+                notes: "",
+                weeksCount: 10
+            };
+            highlightedStudentId = null; // Clear highlight on reset
+            saveToLocalStorage();
+            closeResetModal();
+            renderClassRecordTable();
+            playSound('delete');
+        }
+
+        function toggleTheme() {
+            playSound('click');
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function openGuide() {
+            playSound('click');
+            document.getElementById('modal-guide').classList.remove('hidden');
+        }
+
+        function closeGuide() {
+            document.getElementById('modal-guide').classList.add('hidden');
+        }
+
+        function exportToExcel() {
+            playSound('click');
+            const data = systemData[activeClass];
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            if (currentTab === 'grades') {
+                let headers = ["Student Name", "Attendance"];
+                data.columns.forEach(col => headers.push(col.label));
+                headers.push("Average");
+                csvContent += headers.join(",") + "\n";
+
+                data.students.forEach(student => {
+                    let row = [
+                        `"${student.name || ''}"`,
+                        student.attendance ? "Present" : "Absent"
+                    ];
+                    data.columns.forEach(col => {
+                        row.push(student.grades[col.key] !== undefined ? student.grades[col.key] : "");
+                    });
+                    const calc = calculateGrades(student.grades, data.columns);
+                    row.push(calc.average);
+                    csvContent += row.join(",") + "\n";
+                });
+            } else {
+                const wCount = data.weeksCount || 10;
+                let headers = ["Student Name"];
+                for (let w = 1; w <= wCount; w++) {
+                    headers.push(`Week ${w}`);
+                }
+                csvContent += headers.join(",") + "\n";
+
+                data.students.forEach(student => {
+                    let row = [`"${student.name || ''}"`];
+                    for (let w = 1; w <= wCount; w++) {
+                        const status = student.attendanceWeeks ? (student.attendanceWeeks[`Week ${w}`] || 'P') : 'P';
+                        row.push(status);
+                    }
+                    csvContent += row.join(",") + "\n";
+                });
+            }
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Grade5_Class_${activeClass}_${currentTab}_Records.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportToPDF() {
+            playSound('click');
+            window.print();
+        }
+    </script>
+</body>
+</html>
